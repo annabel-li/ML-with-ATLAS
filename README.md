@@ -1,4 +1,4 @@
-# Optimizing software to hardware conversions of ML models for the ATLAS L0 trigger system
+# Optimizing Machine Learning (ML) Models for Deployment in the ATLAS Hardware Trigger System
 ## Project introduction  
 
 
