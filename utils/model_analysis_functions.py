@@ -1,35 +1,34 @@
-"""This file contains functions I made for analyzing discrepancies between Keras and hls4ml models. 
-Performance between different hls4ml parameterizations is evaluated with metrics 
-such as Mean Percent Error (MPE) and Mean Absolute Error (MAE), though the functions
-can be easily edited with metrics such as predicted / true. Many of them also rely on specific folder and path naming 
-conventions I developed and setting trace to True during the hls4ml conversion - see the PTQ and QAT folders 
-for more details on how to implement this."""
+"""This script contains functions I developed to analyze the difference between a Keras model 
+and various hls4ml parameterizations. Performance metrics for analysis were mostly MPE and MAE, although functions can be 
+easily modified to accomodate other methods, such as predictions / truth. Note that certain functions rely on naming 
+conventions I developed as well as setting trace to True during hls4ml conversion - see the PTQ and QAT folders for more details."""
 
-import numpy as np
-import matplotlib as plt 
+import numpy as np 
+import pickle
 import os 
+import matplotlib.pyplot as plt 
 import seaborn as sns
 from matplotlib.colors import LinearSegmentedColormap
-import pickle
+import tensorflow as tf 
 
 
-#Function: compares the performance of QAT and PTQ models from their keras counterpart at varying fixed-point precisions and nodes, where one of the precision
-# parameters, either integer or decimal, is kept fixed. (1D precision sweep)
+#used to visualize a 1D precision sweep between QAT and PTQ models, plotting MPE from the equivalent Keras model. 
+#requires the original Keras model to be trained first. 
 def qat_vs_ptq(
-    qat_path: str, #path to QAT results
-    ptq_path: str, #path to PTQ results
-    qat_model_sizes: list, 
+    qat_path: str, #path to folder containing results files 
+    ptq_path: str,
+    qat_model_sizes: list,
     ptq_model_sizes: list, 
     save_path: str, 
-    precision_range: list, #last element is exclusive. This contains the range of values you are sweeping through. 
-    set_bit: int, #value of the unchanging bit. 
-    bit_to_set: int, #0 refers to the M in ap_fixed<M, N> and 1 refers to N ---> eg. if bit_to_set = 1, then you are sweeping through ap_fixed<X, set_bit>
-    name: str, #name of the sweep series. 
+    precision_range: list, #upper bound is exclusive; list represents the range of the precision sweep for the changing bit 
+    bit_to_set: int, #for ap_fixed<M,N>, fixing M -> bit_to_set = 0 and fixing N -> bit_to_set = 1
+    set_bit: int, #the value of the bit that is set 
+    name: str, #name for this particular sweep directory 
     num_samples: int=1000, 
-    plt_title: str="PTQ vs. QAT MPE from equivalent Keras model", 
-    xlabel: str="Fixed-Point Precision", 
-    graph_type: str="mpe", #or mae. 
-    colours: list=["red", "green", "purple", "orange", "blue", "black", "grey", "gold"] #list of colours for the graph lines 
+    plt_title: str="PTQ vs. QAT MPE from equivalent keras model", 
+    xlabel: str="Precision", 
+    graph_type="mpe", #or mae. 
+    colours = ["red", "green", "purple", "orange", "blue", "black", "grey", "gold"] #default list of colours for plotting. 
 ):
 
     data_dict = {}
@@ -42,9 +41,8 @@ def qat_vs_ptq(
 
     for training_type in ['qat', 'ptq']: 
 
-        for nodes in model_sizes[training_type][0]: 
+        for nodes in model_sizes[training_type][0]:
 
-            #append data to a list in a dictionary. The associated key will be the name shown on the graph legend.
             data_dict[f"{nodes}-node {training_type.upper()} model"] = []
             selected_list = data_dict[f"{nodes}-node {training_type.upper()} model"]
 
@@ -55,7 +53,7 @@ def qat_vs_ptq(
                 elif bit_to_set == 0:
                     spec_path = os.path.join(model_sizes[training_type][1], f"{nodes}.{set_bit}.{i}.{name}/") 
                 else: 
-                    raise ValueError("Value of bit to set not recognized.")
+                    raise ValueError("Bit to set is an invalid value. Accepted values are 0 or 1.")
 
                 if os.path.exists(spec_path): 
 
@@ -63,37 +61,39 @@ def qat_vs_ptq(
                     mod_keras_pred = np.loadtxt(os.path.join(spec_path, "keras_predictions.txt"))
 
                     if graph_type == "mpe": 
-                        #avoid divide by zero
+
                         nonzero_mask = mod_keras_pred != 0 
                         mod_result = np.abs(mod_data[nonzero_mask] - mod_keras_pred[nonzero_mask])/(np.abs(mod_keras_pred[nonzero_mask]))*100 
-                        #If desired, you can print out the number of samples you've excluded. 
-                        print("Number of samples excluded: ", np.sum(~nonzero_mask)) 
+                        #print("Number of samples excluded: ", np.sum(~nonzero_mask)) #optional for debugging. 
 
                     elif graph_type =="mae":
+
                         mod_result = np.abs(mod_data - mod_keras_pred)
                     
                     else: 
-                        raise ValueError(f"Graph type {graph_type} not recognized.")
+                        raise ValueError("Graph type not recognized. Edit function and try again.")
                     
-                    mn_result = np.mean(mod_result) 
-                    selected_list.append(mn_result)  
+                    mod_result = np.mean(mod_result) 
+                    selected_list.append(mod_result)  
 
                     if (nodes == qat_model_sizes[0] or nodes == ptq_model_sizes[0]) and len(precision_labels) < (precision_range[1] - precision_range[0]):
                         #create x axis labels for graphing 
                         if bit_to_set == 1: 
-                            precision_labels.append(f"ap_fixed<{i},{set_bit}>") 
+                            precision_labels.append(f"<{i},{set_bit}>") 
                         else: 
-                            precision_labels.append(f"ap_fixed<{set_bit},{i}>")
+                            precision_labels.append(f"<{set_bit},{i}>")
 
                 else:
-                    print(f"{training_type} model path {spec_path} not found.")         
+                    print(f"{graph_type} path {spec_path} not found.")
 
-    #set one line for each model 
     num_lines = len(data_dict) 
-    data_names = []
-    plt.figure(figsize=(12,7))
+    print("Data dictionary: ") 
 
-    #append the names of the models
+    last_key = list(data_dict.keys())[-1]
+
+    data_names = []
+    fig, ax = plt.subplots(figsize=(12,7))
+
     for keys in data_dict: 
         data_names.append(keys)
 
@@ -110,15 +110,18 @@ def qat_vs_ptq(
             plt.plot(x, y, color=colours[(i - len(qat_model_sizes))%len(colours)], label=data_names[i])
             print(f"PTQ line {i} successfully generated.")
 
-    #Generate the plot. 
-    plt.legend() 
-    plt.title(plt_title)
-    plt.text(x=ax.get_xlim()[0], y=ax.get_ylim()[1], s=f"Number of samples per precision: {num_lines}", ha='left', va='top')
-    plt.xlabel(xlabel)
-    plt.xticks(ticks=x.flatten(), labels=precision_labels, rotation=45, ha="right")
-    plt.ylabel(graph_type.upper())
+
+    ax.legend() 
+    ax.set_title(plt_title)
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(graph_type.upper())
+    ax.set_xticks(x)
+    ax.set_xticklabels(precision_labels, rotation=45, ha="right")
+    ax.text(x=ax.get_xlim()[0], y=ax.get_ylim()[1], 
+            s=f"Number of samples used for predictions: {num_samples}", 
+            ha='left', va='top')
+
     plt.tight_layout()
-    plt.show() 
 
     im_path = os.path.join(save_path + f"{plt_title}.png")
     plt.savefig(im_path)
@@ -126,7 +129,7 @@ def qat_vs_ptq(
 
     print(f"{plt_title} plot generated and saved to {im_path}.")
 
-#Reduces the range of a plt cmap for better viewing
+#Helper function for sweep_heatmap function 
 def truncate_colormap(cmap_in, minval=0.3, maxval=0.7, n=256):
     new_cmap = LinearSegmentedColormap.from_list(
         f"trunc({cmap_in.name},{minval:.2f},{maxval:.2f})",
@@ -135,7 +138,7 @@ def truncate_colormap(cmap_in, minval=0.3, maxval=0.7, n=256):
     return new_cmap
 
 
-#helper function for sweep_heatmap 
+#Helper function for sweep_heatmap function 
 def find_min_idx(
     array: np.array, 
     max_rows: int, 
@@ -150,6 +153,7 @@ def find_min_idx(
             if flat_copy[i] != mask: 
                 min_val =flat_copy[i] 
                 break 
+
     tgt_row = 0 
     tgt_col = 0 
 
@@ -162,8 +166,8 @@ def find_min_idx(
 
     return [min_val, tgt_row, tgt_col]
 
-
-#Function: Plots a 2D precision sweep between integer and decimal bits - used to select the optimal precision combination 
+#plots the results of a 2D hls4ml precision sweep for a single Keras model
+#total precision increases along x and integer precision increases along y 
 def sweep_heatmap(
     model_nodes: int, 
     data_path: str, #path to general folder containing the tensor file folders
@@ -171,16 +175,16 @@ def sweep_heatmap(
     int_range: list, 
     full_range: list, 
     graph_type: str, #either 'mpe' or 'mae'
-    save_path: str, 
-    name: str='model', #name of the model references in the sweep directory 
+    name: str, #name of the model for the sweep.
     max_percentile: int=100, #percentile to cut off at. 
     cmap_range: list=[0, 1], 
     num_samples: int=1000, 
     cmap: str='RdBu', 
+    save_path: str="/home/ali2/hls4ds/training_programs/wk4/regression_only/", 
     x_label: str= "Total Number of Bits", 
     y_label: str="Integer Bits", 
     square: bool=True, 
-    make_txt: bool=True #offers the option to generate a text file with numerical results. 
+    gen_txt: bool=True #offers the option to generate a text file with numerical results for analysis. 
 ): 
 
     from matplotlib.colors import LogNorm
@@ -205,22 +209,24 @@ def sweep_heatmap(
                 print(f"Warning: Missing {model_path}")
                 continue
 
-            #Calculate mpe 
             if graph_type == 'mpe': 
 
                 keras_preds = np.loadtxt(os.path.join(model_path, "keras_predictions.txt"))[:num_samples]
                 hls_preds = np.loadtxt(os.path.join(model_path, "hls_predictions.txt"))[:num_samples]
+
                 pe = np.abs(hls_preds - keras_preds)/np.abs(keras_preds) * 100
                 mpe = np.mean(pe)
+
+                print(f"MPE for {model_name}: {mpe}")
+
                 results[int_bits - int_range[0]][full_bits - full_range[0]] = mpe 
 
-            #Calculate mae
             elif graph_type == 'mae': 
 
                 keras_preds = np.loadtxt(os.path.join(model_path, "keras_predictions.txt"))[:num_samples]
                 hls_preds = np.loadtxt(os.path.join(model_path, "hls_predictions.txt"))[:num_samples]
 
-                err = np.abs(hls_preds)/np.abs(keras_preds)
+                err = np.abs(hls_preds - keras_preds)
                 m_err = np.mean(err)
 
                 results[int_bits - int_range[0]][full_bits - full_range[0]] = m_err
@@ -228,8 +234,9 @@ def sweep_heatmap(
             else: 
                 raise ValueError("Graph type not recognized. Edit the function and try again.")
 
-    if make_txt == True: 
-        with open(os.path.join(data_path, f"results_{model_nodes}_{graph_type}.txt"), 'w') as out_file:
+    if gen_txt: #generate text file. 
+
+        with open(os.path.join(data_path, f"results_{model_nodes}_{graph_type}.txt"), 'w') as out_file: #use w so we don't just make a giant file. 
 
             min_val, min_row, min_col = find_min_idx(results, num_rows, num_cols, mask_val)
 
@@ -242,32 +249,35 @@ def sweep_heatmap(
                     if results[int_bits][full_bits] != -99.0: 
                         if graph_type == 'mpe': 
                             out_file.write(f"MPE for ap_fixed<{full_bits + full_range[0]},{int_bits+int_range[0]}>: {results[int_bits][full_bits]}\n")
+                            
                         else: 
                             out_file.write(f"HLS/Keras pred for ap_fixed<{full_bits + full_range[0]},{int_bits+int_range[0]}>: {results[int_bits][full_bits]}\n")
+                        
 
     fig = plt.figure(figsize=(13, 7))
     ax = fig.add_subplot()
     cmap = truncate_colormap(plt.get_cmap(cmap), cmap_range[0], cmap_range[1])
 
-    #make results fit the graph 
-    temp = results.flatten() 
-    results = np.flipud(results) 
+    #fit results to the graph. 
+    temp = results.flatten()
+    results = np.flipud(results) #flip vertically 
     mask = results < 0
     yticks = np.arange(results.shape[0])
 
-    ytick_labels = [] #integer bits vary along y 
-    xtick_labels = [] #total number of bits vary along x 
+    ytick_labels = []
     for int_b in np.flip(np.arange(int_range[0], int_range[1])): 
-        ytick_labels.append(f"ap_fixed<{full_range[0]}, {int_b}>")
-    for full_b in np.arange(full_range[0], full_range[1]):
-        xtick_labels.append(f"ap_fixed<{full_b}, {int_range[0]}>")
-        
+        ytick_labels.append(f"<{full_range[0]}, {int_b}>")
+    
+    xtick_labels = []
+    for full_b in np.arange(full_range[0], full_range[1]): 
+        xtick_labels.append(f"<{full_b}, {int_range[0]}>")
+
     if graph_type == 'mpe': 
 
         cbar_kws = {'label': 'Mean Percent Error', 'pad': 0.03}
         vmax = np.percentile(temp, max_percentile) 
         hm = sns.heatmap(data=results, mask=mask, vmin=0, vmax=vmax, cmap=cmap, norm=LogNorm(), cbar=True, cbar_kws=cbar_kws, square=False)
-        #hm = sns.heatmap(data=results, mask=mask, vmin=0, vmax=vmax, cmap=cmap, cbar=True, cbar_kws=cbar_kws, square=False) #non-log normalized. 
+        #hm = sns.heatmap(data=results, mask=mask, vmin=0, vmax=vmax, cmap=cmap, cbar=True, cbar_kws=cbar_kws, square=False) #non-logNorm version 
         plt.text(x=ax.get_xlim()[0], y=ax.get_ylim()[1], s=f"Max percentile of data: {max_percentile}%\nGraph type: {graph_type}", ha='left', va='top')
 
     else: 
@@ -293,14 +303,14 @@ def sweep_heatmap(
 
     plt.savefig(os.path.join(save_path, f"{plt_title}.png"))
     print(f"{plt_title} heatmap saved under {save_path}.")
+    
 
-
-#Analyzes per-layer outputs of a keras model so you can determine if different layers can use differing precisions 
+#Analyzes the per-layer output of a Keras model; useful for deciding if some layers require more precision than others. 
 def trace_keras_model(
     model_path: str, #expects .keras file 
     custom_objects: dict, 
     test_data: np.array, #compatible with the load_test_data function as defined in utils.py  
-    num_samples: int=10000
+    num_samples: int=100
 ): 
 
     kmodel = tf.keras.models.load_model(model_path, compile=False, custom_objects=custom_objects) 
@@ -316,34 +326,12 @@ def trace_keras_model(
 
     return keras_trace 
 
-#Simple function to interpret the .pickle keras training history file.
-def print_training_history(
-    history_path: str, #path to pickle file
-    keys_to_analyze: list
-): 
-
-    with open(history_path, 'rb') as file: 
-        history = pickle.load(file) 
-
-        print("History dictionary keys: ")
-        for i, key in enumerate(history.keys()): 
-            if i == 0:
-                print("Number of training epochs: ", len(history[key]))
-            print(key)
-
-        for k in keys_to_analyze: 
-            print(f"Training history for {k}:")
-            
-            for epoch in range(len(history[k])): 
-                print(f"Epoch {epoch+1} {k}: ", history[k][epoch])
-
-
-#Analyzes the per-layer outputs of model traces and outputs into a text file (txt_file)  
-#This function assumes we are comparing the same model, just different ptq/qat versions   
+#Used to analyze, side-by-side, the trace dictionaries of 2+ models (typically Keras and its hls4ml equivalent)
+#This function assumes we are comparing the same model (aka same number of nodes), just different versions
 def analyze_trace(
     trace_dicts: dict, #dictionary of dictionaries. 
-    txt_file: str="trace_analysis.txt", 
     sample_num: int=0, #idx of sample. 
+    txt_file: str="trace_analysis.txt" #title of text file to be generated. 
 ): 
 
     maxlength = 0
@@ -360,6 +348,7 @@ def analyze_trace(
             print(k)
 
     ckeys = get_common_keys(trace_dicts, longest_dict)
+    print("Ckeys: ", ckeys)
     first_dict = next(iter(trace_dicts))
   
     with open(txt_file, "w") as out_file: 
@@ -392,7 +381,8 @@ def analyze_trace(
     print("Analysis txt file save path: ", txt_file)
 
 
-#Returns: the list of keys with common names between dictionaries. (Helper function for analyze_trace.)
+#Returns: the list of keys with common names between dictionaries. 
+#Helper function for analyze_trace. 
 def get_common_keys(
     trace_dicts: dict, 
     longest_dict_name: str="one_dict", #refers to the longest dictionary in the dictionary of dicts
@@ -416,14 +406,15 @@ def get_common_keys(
     
     return common_keys
 
-#Returns a scatter plot to show the signed difference between layers for the Keras and hls models; used to pinpoint problematic layers. 
+#Returns a spread plot showing the difference between the Keras and hls4ml models - useful to determine if there are problematic 
+#layers, or if error is cumulative. 
 def per_layer_analysis(
     hls_dict_path: str, 
     keras_dict_path: str, 
-    plt_title: str, 
     save_path: str, 
-    samples: int = 100, 
-    colour: str='royalblue', 
+    plt_title: str, 
+    samples: int=1000, 
+    colour: str='royalblue'
 ): 
 
     with open(keras_dict_path, 'rb') as file: 
@@ -463,6 +454,5 @@ def per_layer_analysis(
     plt.savefig(save_path + f"{plt_title}")
     plt.close()
 
-    print(f"{plt_title} scatter generated and saved to {save_path}.")
-
+    print(f"{plt_title} plot generated and saved to {save_path}.")
 
