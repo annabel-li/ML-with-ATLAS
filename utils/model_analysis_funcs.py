@@ -11,6 +11,7 @@ import os
 import seaborn as sns
 from matplotlib.colors import LinearSegmentedColormap
 import pickle
+import tensorflow as tf 
 
 
 #Function: compares the performance of QAT and PTQ models from their keras counterpart at varying fixed-point precisions and nodes, where one of the precision
