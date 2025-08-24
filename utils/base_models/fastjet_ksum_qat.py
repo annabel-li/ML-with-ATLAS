@@ -3,20 +3,18 @@
 
 import numpy as np
 import sys 
-
 import os
 
 import numpy as np
 
 import tensorflow as tf
-from tensorflow import keras
 import tensorflow.keras.layers as KL
 from tensorflow.keras import backend as KB
 
 import qkeras
 from qkeras import QActivation
 
-from custom_layers import KSum 
+from utils.base_models.custom_layers import KSum 
 
 
 
@@ -26,14 +24,14 @@ def ksum_qat(
     rho_layers: list = [],
     output_dim: int = 1,
     activ: str = "relu",
-    vector_bits: list = [], #Intermediate and output vectors are quantized to this precision. 
+    vector_bits: list = [], #Intermediate and output vectors are quantized to this precision. Format: [n_full_bits, n_int_bits]
     model_bits: list = [] #model architecture bits - eg. for weights and biases. 
 ):
 
     quant = format_quantiser(model_bits) 
     activ = format_qactivation(activ, vector_bits)
 
-    deepsets_input = keras.Input(shape=input_size, name="input_layer") 
+    deepsets_input = tf.keras.Input(shape=input_size, name="input_layer") 
 
     # Phi network.
     x = qkeras.QDense(

@@ -27,5 +27,6 @@ def dummy_data_gen(
         data_list.append(full_data)
         regression_targets.append(np.random.rand(1))
 
-    return np.array(data_list), np.array(regression_targets) #return as a tuple with 2 np arrays 
+    return np.array(data_list).astype(np.float32), np.array(regression_targets).astype(np.float32) 
+    #return as a tuple with 2 np arrays. For some reason need to specify astype or else training throws an error. 
 
