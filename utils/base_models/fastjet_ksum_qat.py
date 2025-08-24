@@ -1,6 +1,5 @@
 # Deepsets models in a format friendly for synthetisation. 
 #From https://github.com/fastmachinelearning/l1-jet-id/blob/main/fast_jetclass/deepsets/deepsets_synth.py
-#Regression only. 
 
 import numpy as np
 import sys 
@@ -17,8 +16,7 @@ from tensorflow.keras import backend as KB
 import qkeras
 from qkeras import QActivation
 
-sys.path.append(os.path.join(os.path.dirname(__file__), 'custom_layers'))
-from init_layers import KSum 
+from custom_layers import KSum 
 
 
 
@@ -41,7 +39,6 @@ def ksum_qat(
     x = qkeras.QDense(
         phi_layers[0], kernel_quantizer=quant, bias_quantizer=quant, name=f"phi{1}"
    )(deepsets_input)
-    #x = qkeras.QActivation(f"quantized_bits({vector_bits[0]},{vector_bits[1]})")(x) #force the outputs to be quantized too. but this is unnecessary because the activation is going to quantize the outputs allegedly.
     x = qkeras.QActivation(activ)(x)
 
     for i, layer in enumerate(phi_layers[1:]):
@@ -49,10 +46,6 @@ def ksum_qat(
             layer, kernel_quantizer=quant, bias_quantizer=quant, name=f"phi{i+2}"
         )(x)
         x = qkeras.QActivation(activ)(x)
-
-    #x = qkeras.QActivation(
-    #    qkeras.quantized_bits(**ksum_precision, symmetric=0, keep_negative=1)
-    #)(x) 
 
     # Aggregator
     x = KSum(name="KSum")(x)
@@ -66,21 +59,18 @@ def ksum_qat(
         )(x)
         x = qkeras.QActivation(activ)(x)
 
-    #regression_output = KL.Dense(1, name="regression")(x)  
     #try this to quantize the model's output... 
     x = KL.Dense(1, name="regression")(x)
     regression_output = qkeras.QActivation(f"quantized_bits({vector_bits[0]},{vector_bits[1]})")(x)
 
     # Final model 
     deepsetsKsumQat = keras.Model(
-        #inputs=[deepsets_input, inputs_ncells], 
         inputs=deepsets_input,
         outputs=regression_output,
         name="dsKsumQat"
     )
 
     return deepsetsKsumQat
-
 
 
 

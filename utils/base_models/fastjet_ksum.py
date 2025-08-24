@@ -10,8 +10,7 @@ import tensorflow as tf
 from tensorflow import keras
 import tensorflow.keras.layers as KL
 
-sys.path.append(os.path.join(os.path.dirname(__file__), 'custom_layers'))
-from init_layers import KSum 
+from custom_layers import KSum 
 
 
 def ds_ksum(
@@ -48,9 +47,8 @@ def ds_ksum(
 
     regression_output = KL.Dense(1, name="regression")(x)  
 
-    # Final model with two outputs
+    # Final model with regression output
     deepsets = keras.Model(
-        #inputs=[deepsets_input, inputs_ncells], 
         inputs=deepsets_input,
         outputs=regression_output,
         name="dsksum"
