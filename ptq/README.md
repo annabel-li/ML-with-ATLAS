@@ -6,6 +6,16 @@
 with float32 representations. Working with PTQ, I studied the impacts that model size (# of nodes per dense layer) and post-training quantization 
 (number of bits allocated to the integer and decimal portions of numbers in the model) affected model accuracy. 
 
+## Required libraries 
+
+Be sure to install ```hls4ml```, ```tensorflow```, and ```keras``` (as well as any other required packages) before running with 
+```pip install <package_name>```. 
+
+For tensorflow, install the GPU-friendly version with ```pip install "tensorflow[and-cuda]==<version_number>``` to run the model 
+conversion with GPUs. 
+
+Note that hls4ml may not be compatible with the most recent version of tensorflow; be sure to check their [documentation](https://fastmachinelearning.org/hls4ml/intro/setup.html) for updates. I've been able to run ```hls4ml==1.1.0``` with ```tensorflow==2.15.0``` and ```tensorflow==2.17.0```. 
+
 ## Workflow 
 
 #### Step 1: train the model in Python with Tensorflow and Keras using ```trainModel.py``` 
