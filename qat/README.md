@@ -11,6 +11,11 @@ using the ```qat_vs_ptq()``` function in ```utils/model_analysis_funcs.py```.
 ## Required libraries 
 
 Training with QAT requires QKeras, which can be installed with ```pip install qkeras```. It may be best to create a virtual python environment when 
-doing so as I ran into compatibility issues with the versions of NumPy and tensorflow I already had installed, and had to uninstall keras and 
-reinstall ```tf_keras``` (legacy keras) specifically. This also required altering some of the files in the hls4ml package when it came to searching for and importing keras. 
+doing so as I ran into compatibility issues with the versions of NumPy and Tensorflow I already had installed, and had to uninstall keras and 
+reinstall ```tf_keras``` (legacy keras) specifically. 
+
+This also required altering some of the files in the hls4ml package when it came to searching for and importing keras. If you get an error message from hls4ml saying ```"NameError: name 'keras' is not defined. Did you mean: 'qkeras'?``` you may fix it by following the hls4ml path in the error message to ```profiling.py``` and changing ```import keras``` to ```import tf_keras as keras```. 
+
+To avoid serialization issues, I also converted QKeras models to their hls4ml forms in the same workflow instead of saving and then re-loading.
+
 
