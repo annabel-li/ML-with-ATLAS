@@ -111,12 +111,6 @@ def keras_to_hls(
             with open(os.path.join(model_specific_save_path, f"{name}_history.pickle"), 'wb') as handle:
                 pickle.dump(history, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
-            if prune: 
-
-                strip_pruned_model = strip_pruning(model)
-                strip_pruned_model.save(os.path.join(model_specific_save_path, f"{name}_strip_pruned.keras"))
-                print(f"Stripped model saved to: {os.path.join(model_specific_save_path, f'{name}_strip_pruned.keras')}")
-
             print(f"Model and files saved to: {model_specific_save_path}")
 
         except RuntimeError as e:
