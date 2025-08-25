@@ -6,8 +6,6 @@ import os
 
 import tensorflow as tf
 import tf_keras as keras
-from tensorflow_model_optimization.python.core.sparsity.keras import prune, pruning_callbacks, pruning_schedule
-from tensorflow_model_optimization.sparsity.keras import strip_pruning
 from qkeras.utils import model_save_quantized_weights
 
 try:
@@ -31,7 +29,6 @@ def keras_to_hls(
     tr_from_scratch: bool = False, 
     epochs: int=10,
     test_data_path: str="/Processed_Data/", 
-    prune: bool=False, #offers the option for pruning if desired. 
     batch_size: int=4096, 
     model_type: str="model", 
     save_path = "/qat/trained_model_materials/", 
@@ -72,12 +69,6 @@ def keras_to_hls(
         # change of learning rate on plateau and early stopping 
         callbacks = [keras.callbacks.ReduceLROnPlateau(factor=0.2, patience=5, min_lr=0.000001, verbose=1),
                     keras.callbacks.EarlyStopping(patience=5, restore_best_weights=True, verbose=1)]
-
-        if prune:
-            #from https://fastmachinelearning.org/hls4ml-tutorial/part4_quantization.html: 
-            pruning_params = {"pruning_schedule": pruning_schedule.ConstantSparsity(0.75, begin_step=2000, frequency=100)}
-            model = prune.prune_low_magnitude(model, **pruning_params)
-            callbacks.append(pruning_callbacks.UpdatePruningStep())  
                     
         # Compile the model and start training
         model.compile(optimizer=optimizer, loss=losses, metrics=['accuracy', 
@@ -102,9 +93,6 @@ def keras_to_hls(
 
             model_specific_save_path = os.path.join(save_path, f"{name}.model")
             os.makedirs(model_specific_save_path, exist_ok=True)
-
-            if prune: 
-                name = f"pruned_{name}"
             
             model.save(os.path.join(model_specific_save_path, f"{name}.keras"))
             model.save(os.path.join(model_specific_save_path, f"{name}.h5"))
@@ -143,7 +131,6 @@ def keras_to_hls(
         convert_ksum_model( 
             model = model, #trained keras model
             num_nodes = phi_nodes[0],  
-            is_pruned = prune, 
             inputs=inputs, 
             regression_targets=regression_targets, 
             model_type = model_type, 

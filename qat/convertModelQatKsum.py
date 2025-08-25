@@ -17,8 +17,6 @@ import numpy as np
 import tensorflow as tf
 
 import tf_keras as keras
-from tensorflow_model_optimization.python.core.sparsity.keras import pruning_wrapper
-from tensorflow_model_optimization.sparsity.keras import strip_pruning
 from qkeras import QDense, QActivation
 
 import gzip, pickle
@@ -35,8 +33,7 @@ from utils.base_models.fastjet_ksum_qat import get_model_activations
 
 def convert_ksum_model(
     model: keras.Model, 
-    num_nodes: int, 
-    is_pruned: bool, 
+    num_nodes: int,  
     inputs: np.ndarray, 
     regression_targets: np.ndarray, 
     model_type: str,
@@ -48,11 +45,6 @@ def convert_ksum_model(
     #register_ksum()
 
     keras_model = model 
-
-    if is_pruned: 
-
-        print("Stripped pruning wrappers from keras model.")
-        keras_model = strip_pruning(model)
 
     #print names of layers 
     model.summary(expand_nested=True)
