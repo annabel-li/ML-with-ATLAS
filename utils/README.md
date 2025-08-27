@@ -3,8 +3,8 @@
 ### Structure 
 
 ```
-|-- utils/ 
-        |-- base_models/
+├── utils/ 
+        └── base_models/
             - __init__.py
             - custom_layers.py 
             - fastjet_ksum.py 
