@@ -1,12 +1,6 @@
 import sys
-import io
 import os
-import collections.abc
-import json
-import contextlib
-import argparse, gzip, pickle, awkward
-
-from tqdm import tqdm
+import argparse
 import tensorflow as tf
 
 #tweak sys path to allow the script in its location to recognize utils as a module 

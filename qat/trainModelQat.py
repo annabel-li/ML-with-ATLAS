@@ -1,7 +1,5 @@
-import numpy as np
 import sys 
-import pickle, gzip
-import argparse
+import pickle
 import os
 
 import tensorflow as tf

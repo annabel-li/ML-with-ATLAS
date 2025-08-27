@@ -7,11 +7,7 @@ README of the ptq folder for more details."""
 
 import sys
 import hls4ml
-import io
 import os
-import collections.abc
-import json
-import contextlib
 
 import numpy as np
 import tensorflow as tf
