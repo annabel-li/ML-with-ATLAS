@@ -20,7 +20,8 @@
 ### Content overview 
 
 1) Scripts
-- ``` floats_for_hardware.py```: Converts Python floats to integer representations with specified fixed-point precision; used for input np.arrays.
+- ``` floats_for_hardware.py```: Converts Python floats to integer representations with specified fixed-point precision; used for input np.arrays. Official documentation
+  about the ```ap_fixed<M, N>``` data type can be found on AMD's website: https://docs.amd.com/r/en-US/ug1399-vitis-hls/Overview-of-Arbitrary-Precision-Fixed-Point-Data-Types. 
 
 2) Work samples
 - ```/vitis_example/``` contains a sample of a finite state machine (FSM) I developed for testing on the FPGA along the way to crafting the full-fledged neural network.
