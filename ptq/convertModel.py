@@ -4,26 +4,16 @@ To convert custom layers with hls4ml, you will have to implement extension API -
 README of the ptq folder for more details."""
 #from ksum_materials import KSum, HSum, FuseSumActivation, HSumConfigTemplate, HSumFunctionTemplate, register_ksum, parse_sum_layer 
 
-import sys
-import io
+
 import os
-import collections.abc
-import json
-import contextlib
 
 import numpy as np
 import tensorflow as tf
 import hls4ml
-
 from tensorflow import keras 
-from tqdm import tqdm
-
-import argparse, gzip, pickle, awkward
-
+import argparse, pickle
 from fastjet_ksum import get_model_activations
 from hls4ml.model.profiling import numerical, get_ymodel_keras
-
-import matplotlib.pyplot as plt
 
 from utils.dummy_data_generator import dummy_data_gen #import your test data loading function here. 
 
