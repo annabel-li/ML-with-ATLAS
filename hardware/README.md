@@ -2,7 +2,8 @@
 
 ### Folder structure 
 
-```├── hardware/
+```
+   ├── hardware/
         └── vitis_example/
             └── algo.cpp
             └── algo.h
