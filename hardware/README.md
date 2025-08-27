@@ -5,15 +5,16 @@
 ```
    ├── hardware/
         └── vitis_example/
-            └── algo.cpp
-            └── algo.h
-            └── data.h
-            └── tb_algo.cpp
-            └── hls_config.cfg
-            └── block_diagram.png
-            └── fsm5testing.ipynb
-         └── floats_for_hardware.py
-         └── 'Getting started with Vitis & Vivado.pdf'
+            - algo.cpp
+            - algo.h
+            - data.h
+            - tb_algo.cpp
+            - hls_config.cfg
+            - block_diagram.png
+            - fsm5testing.ipynb
+         - 'Getting started with Vitis & Vivado.pdf'
+         - README.md
+         - floats_for_hardware.py
 ```
 
 ### Content overview 
