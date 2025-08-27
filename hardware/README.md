@@ -13,6 +13,7 @@
             └── block_diagram.png
             └── fsm5testing.ipynb
          └── floats_for_hardware.py
+         └── 'Getting started with Vitis & Vivado.pdf'
 ```
 
 ### Content overview 
@@ -22,9 +23,10 @@
 
 2) Work samples
 - ```/vitis_example/``` contains a sample of a finite state machine (FSM) I developed for testing on the FPGA along the way to crafting the full-fledged neural network.
-- Vitis C++ files for synthesis: ```algo.cpp```, ```algo.h```, ```data.h```, ```tb_algo.cpp```, ```hls_config.cfg```
-- Vivado block diagram showing the IP block schematic: ```block_diagram.png```
-- Jupyter notebook for testing deployment on the FPGA: ```fsm5testing.ipynb```
+   - Vitis C++ files for synthesis: ```algo.cpp```, ```algo.h```, ```data.h```, ```tb_algo.cpp```, ```hls_config.cfg```
+   - Vivado block diagram showing the IP block schematic: ```block_diagram.png```
+   - Jupyter notebook for testing deployment on the FPGA: ```fsm5testing.ipynb```
 
-## Sample workflow for Vitis & Vivado 
+3) Tutorial Presentation
+- ```Getting started with Vitis & Vivado.pdf```: teaches new users how to set up, connect, and run code on a PYNQ Z2 board with Vitis, Vivado, and PYNQ's Python API on JupyterLab
 
