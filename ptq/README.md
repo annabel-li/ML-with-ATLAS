@@ -1,5 +1,14 @@
 # Introduction to the PTQ folder  
 
+## Folder structure 
+
+```
+|-- PTQ/
+    - README.md
+    - convertModel.py 
+    - trainModel.py 
+```
+
 ## Quick facts 
 
 'Post-Training Quantization' refers to the process of converting floats to fixed-point representations after a model has been trained in software
@@ -36,6 +45,7 @@ Set up the hls model config with the desired test precision. The script offers t
 #### Step 3: Test the Keras and hls4ml versions of the model with the same input samples, and compare outputs 
 
 As the hls4ml model predicted significantly slower, the maximum number of input samples passed was 1000. The ```convertModel.py``` script automatically sets up per-layer output tracing and saves the model prediction results in a text file under the model's name. Results were analyzed with functions from the ```model_analysis_funcs.py``` file under ```ML-with-ATLAS/utils/```.  
+
 
 
 
