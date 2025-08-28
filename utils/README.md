@@ -27,7 +27,7 @@ Our model was trained on log-normalized ROOT data that had 4 input features: cel
 128 as the maximum number (vmax) of input cells - thus our models had an input size of (None, 128, 4). Clusters with ncells < vmax were padded up to vmax with -6.
 - ```model_analysis_funcs.py```: script containing various functions I developed to analyze the performance of parameterizations of our hardware-friendly DeepSets model. Performance between different parameterizations are evaluated with metrics such as Mean Percent Error (MPE) and Mean Absolute Error (MAE), though the functions
 can be easily edited to display different metrics such as predicted / true. Many of them also rely on specific folder and path naming 
-conventions I developed and setting trace to True during the hls4ml conversion - see the PTQ and QAT folders 
+conventions I developed and setting ```trace=True``` during the hls4ml conversion - see the PTQ and QAT folders 
 for more details on how to implement this. 
    
 
