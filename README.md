@@ -23,6 +23,49 @@ To tackle this, machine learning researchers use one of two strategies:
 
 My research this term investigated how such design choices - such as layer size, quantization strategy, and precision settings - affected the accuracy gap between the original Keras model and its hls4ml implementation. These findings guide the optimization of the DeepSets for deployment in ATLAS’s hardware trigger system, ensuring fast, accurate, and resource-conscious real-time data analysis. 
 
+<br>
+
+## What's in this repo? 
+
+
+```
+ML-with-ATLAS/ 
+    |-- hardware/
+    |-- pruning/
+    |-- ptq/
+    |-- qat/
+    |-- utils/
+    - .gitignore
+    - README.md
+    - __init__.py
+```
+
+**For more information, see each folder's ```README.md```. 
+
+#### ```hardware/```
+- Contains the ```DS_Model``` class, a Python simulation of the DeepSets model under ap_fixed precisions.
+- Contains ```floats_for_hardware.py```, a script used to package floats in an FPGA-friendly format for the Jupyter/PYNQ interface. 
+
+#### ```pruning/```
+- Contains training and analysis scripts for training a pruned model with Tensorflow and Keras.
+
+#### ```ptq/```
+- Contains the conversion script for converting the DeepSets model to an HLS-friendly form with the ```hls4ml``` library.
+- To use this, train a "vanilla" model in Tensorflow first, then run the script, specifying the Post-Training Quantization precision desired for study. 
+
+#### ```qat/```
+- Contains functions to train a model in ```QKeras``` and convert with ```hls4ml```, as well as a Linux shell script that can be used when batch-converting. Note
+that the shell script is implemented because it drastically cuts down on memory and GPU usage as I used a class to organize data for training.
+
+#### ```utils/```
+- Contains ```base_models/```, a folder with various Tensorflow models I adapted to different training strategies
+- Contains a dummy data generation function as I do not own the data generating function used for the model (see the ```README.md``` for more details.)
+- Contains ```model_analysis_funcs.py```, a script with multiple useful functions for visualizing model performance and analyzing the causes of discrepancies between
+the Keras the hls4ml models. 
+
+<br> 
+
+
 ## References and Resources 
 
 My implementation of the DeepSets model was based on the work done by the authors of the "Ultrafast Jet Classification on FPGAs for the HL-LHC". You can find their repository <a href="https://github.com/fastmachinelearning/l1-jet-id/tree/main/fast_jetclass/deepsets">here.</a>  
