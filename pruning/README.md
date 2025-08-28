@@ -1,7 +1,8 @@
 ## Pruning folder introduction 
 
 ```
-|-- prune/ 
+|-- prune/
+    - README.md
     - analyze_prune.py 
     - train_model_prune.py 
 ```
@@ -42,5 +43,6 @@ For more information on pruning, I recommend these resources:
 - https://www.tensorflow.org/model_optimization/guide/pruning/comprehensive_guide.md 
 - https://github.com/fastmachinelearning/hls4ml-tutorial/blob/main/part3_compression.ipynb 
 - https://wandb.ai/authors/pruning/reports/Diving-Into-Model-Pruning-in-Deep-Learning--VmlldzoxMzcyMDg  (theory behind pruning)
+
 
 
