@@ -3,12 +3,9 @@ import numpy as np
 #these functions are for the Jupyter (Python) interface -> takes floats and converts them to fixed-point representations and then 
 #repackages as integers to feed into an FPGA in matrix form. 
 
-<<<<<<< Updated upstream
 """NOTE: If using these functions, the only function you need to call is pckg_float_for_fpga(). 
 It automatically calls the other functions when running."""
-=======
 #the only function you need to call is pckg_float_for_fpga(). 
->>>>>>> Stashed changes
 
 
 def get_frac_bits(
@@ -275,21 +272,12 @@ def pckg_float_for_fpga(
     #fixed_rep = fit_to_width(twocomp_num, int_width, total_width-int_width, num)
     
     if flag is not None: 
-<<<<<<< Updated upstream
-        addflag = attach_flag(twocomp_num, flag)
-        print("With flag: ", addflag)
-        twocomp_num = addflag
-        #fixed_rep = addflag
-        
-=======
+
         #addflag = attach_flag(fixed_rep, flag)
         addflag = attach_flag(twocomp_num, flag) 
         print("With flag: ", addflag)
         twocomp_num = addflag
         
-    #final_int = bin_to_int(fixed_rep)
-    print(twocomp_num) 
->>>>>>> Stashed changes
     final_int = bin_to_int(twocomp_num)
 
     return final_int
