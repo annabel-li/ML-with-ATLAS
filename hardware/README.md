@@ -26,7 +26,7 @@
          3. Represent the binary as an integer --> ```bin_to_int()```
       * All functions are automatically called as a part of the main function, ```pckg_floats_for_fpga()```.
 
-<br>
+---
 
 #### 2) Work samples
 i. <b>```/python_qmodel/```</b> contains the ```DS_Model``` class I developed to simulate a neural network under hardware (ap_fixed) precisions.
@@ -79,6 +79,8 @@ Structure:
    * Vitis C++ files for synthesis: ```algo.cpp```, ```algo.h```, ```data.h```, ```tb_algo.cpp```, ```hls_config.cfg```
    * Vivado block diagram showing the IP block schematic: ```block_diagram.png```
    * Jupyter notebook for testing deployment on the FPGA: ```fsm5testing.ipynb```
+
+---
 
 #### 3) Tutorial Presentation
 - ```Getting started with Vitis & Vivado.pdf```: teaches new users how to set up, connect, and run code on a PYNQ Z2 board with Vitis, Vivado, and PYNQ's Python API on JupyterLab
