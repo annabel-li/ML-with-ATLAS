@@ -4,14 +4,8 @@
 
 ```
    ├── hardware/
-        └── vitis_example/
-            - algo.cpp
-            - algo.h
-            - data.h
-            - tb_algo.cpp
-            - hls_config.cfg
-            - block_diagram.png
-            - fsm5testing.ipynb
+         └── python_qmodel/ 
+         └── vitis_sample/ 
          - 'Getting started with Vitis & Vivado.pdf'
          - README.md
          - floats_for_hardware.py
@@ -29,11 +23,58 @@
       * Data processing pipeline I developed:
          1. Convert float to unsigned binary while storing the sign in another variable --> ```float_to_ubin()``` 
          2. Convert the unsigned binary to twos-complement form --> ```twos_complement()```
-         3. Fit to specified total and integer bit width --> ```fit_to_width()```
-         4. Represent the binary as an integer --> ```bin_to_int()```
+         3. Represent the binary as an integer --> ```bin_to_int()```
+      * All functions are automatically called as a part of the main function, ```pckg_floats_for_fpga()```.
+
+<br>
 
 #### 2) Work samples
-- ```/vitis_example/``` contains a sample of a finite state machine (FSM) I developed for testing on the FPGA along the way to crafting the full-fledged neural network.
+i. <b>```/python_qmodel/```</b> contains the ```DS_Model``` class I developed to simulate a neural network under hardware (ap_fixed) precisions.
+
+Structure: 
+
+```
+   └── python_qmodel/
+      - apy_ops.py
+      - ds_utils.py
+      - nn_utils.py
+      - testDS.py
+      - example_model.keras
+```
+   * ```apy_ops.py``` contains apy functions for neural network implementation 
+   * ```ds_utils.py``` contains the definition of the quantized DS_Model class 
+   * ```nn_utils.py``` contains the layer classes (Dense, KSum, and Regression)
+   * ```testDS.py``` is the python test script where I tested an instance of a DS_Model
+   * ```example_model.keras```: example model provided for testing the DS_Model class
+       - Parameters: 64 nodes; 5 layers per Phi/F network; regression-only output; trained for ~100 epochs on -6 padded data
+
+   <b> Deployment notes: </b>
+   * DS_Model initialization requires the .keras file to the trained model and will automatically adjust to the layer shapes and number of layers 
+       - If you have no trained models to test, you can use ```example_model.keras``` instead of training from scratch  
+   * Model precision can be changed after initialization: the default is ```ap_fixed<16,6>``` for weights & biases and intermediate & output vectors. 
+   * current ```Dense_Layer``` class performs a matrix multiplication between an input vector extended along 
+   the column dimension with ones and a concatenated weights and biases matrix (instead of the usual V*W + B) due to the fact that APyFixedAccumulatorContext, which 
+   allows for intermediate output quantizations that are not the optimized default, only works for inner products and matrix multiplications. The "old" method 
+   of casting the sum of V*W + B is still in the script but commented out. If that is the route you decide to choose: 
+       * Uncomment ```self.quantize_weights()``` and comment out ```self.process_wb()```
+       * Uncomment the block under ```"old casting method"``` under Dense_Layer's ```forward_pass()``` method and comment out the block under 
+       ```"concatenated wb method"```.
+<br>
+
+ii. <b>```/vitis_example/```</b> contains a sample of a finite state machine (FSM) I developed for testing on the FPGA along the way to crafting the full-fledged neural network.
+
+Structure: 
+
+```
+   └── vitis_example/
+      - algo.cpp
+      - algo.h
+      - data.h
+      - tb_algo.cpp
+      - hls_config.cfg
+      - block_diagram.png
+      - fsm5testing.ipynb
+```
 
    * Vitis C++ files for synthesis: ```algo.cpp```, ```algo.h```, ```data.h```, ```tb_algo.cpp```, ```hls_config.cfg```
    * Vivado block diagram showing the IP block schematic: ```block_diagram.png```
