@@ -3,8 +3,12 @@ import numpy as np
 #these functions are for the Jupyter (Python) interface -> takes floats and converts them to fixed-point representations and then 
 #repackages as integers to feed into an FPGA in matrix form. 
 
+<<<<<<< Updated upstream
 """NOTE: If using these functions, the only function you need to call is pckg_float_for_fpga(). 
 It automatically calls the other functions when running."""
+=======
+#the only function you need to call is pckg_float_for_fpga(). 
+>>>>>>> Stashed changes
 
 
 def get_frac_bits(
@@ -137,7 +141,6 @@ def add_one_to_bin_str(
     #deal with the easy case first: where the last value is 0. 
     if bin_str[length - 1] == '0': 
         bin_str[length - 1] = '1'
-        return "".join(str(bin_str))
 
     else: 
         
@@ -151,13 +154,12 @@ def add_one_to_bin_str(
                 else:
                     bin_str[i - 1] = '1'
                     stop_carry = True #stop carrying over. 
-                    
-        bin_str = "".join(bin_str)
         
         if stop_carry == False: #once you get to the end... 
             bin_str = '1' + bin_str #extend by 1. 
-
-        return bin_str 
+            
+    bin_str="".join(bin_str)
+    return bin_str 
 
 
 def twos_complement(
@@ -167,12 +169,14 @@ def twos_complement(
     nbits = len(ubin_str) + 1
 
     if sign == '+': 
-        sbin_str = '0' + ubin_str
-
+        sbin_str = '0' + ubin_str #implicitly converts to string. 
+        
     elif sign == '-': 
         #get the binary string of the positive number -> invert all the bits -> add 1. recall that bin_list[0] is the binary of the unsigned number. 
-        inverted = invert_bits(ubin_str)
+        inverted = invert_bits(ubin_str) 
+        #print("inverted: ", inverted)
         added_one = add_one_to_bin_str(inverted)
+        #print("Added one: ", added_one)
         sbin_str = added_one
 
     else: 
@@ -183,6 +187,9 @@ def twos_complement(
 
 #The first bit is the signed bit in twos complement notation -> will need an extra bit allocated to the integer portion 
 #twos_complement function should be called before this one. 
+#this function doesn't work because it takes in int_bits again even when the first original number is already 
+#at the specified bit width... this is an obsolete function no longer fit for this workflow. 
+"""
 def fit_to_width(
     bin_str: str,  
     int_bits: int, 
@@ -200,15 +207,19 @@ def fit_to_width(
     if int_bits > get_int_bits(original_float): 
         if original_float < 0: #pad with 1 if negative
             for i in range(int_bits - get_int_bits(original_float)): 
-                bin_str = '1' + bin_str 
+                bin_str = '1' + bin_str  
         else: #pad with 0 if positive
             for i in range(int_bits - get_int_bits(original_float)):
                 bin_str = '0' + bin_str
+        current_width = len(bin_str) #update current width.
+        print(bin_str)
 
     #if current width is too small, right-pad with zeroes 
     if current_width < target_width: 
+        
         for i in range(target_width - current_width):
             bin_str = bin_str + '0'
+        print(bin_str)
 
     if frac_bits == 0 or int_bits == 0: 
         full_num = bin_str + '.' 
@@ -216,14 +227,18 @@ def fit_to_width(
         full_num = '.' + bin_str 
     else:    
         int_part = bin_str[:int_bits] 
+        print("int part:", int_part) 
         frac_part = bin_str[int_bits:int_bits+frac_bits]
+        print("frac part:", frac_part) 
         full_num = int_part + '.' + frac_part 
 
     return full_num #signed binary representation split into int + frac form 
+"""
 
 def bin_to_int(
     bin_str: str
 ): 
+    
     if '.' in bin_str: 
         bin_str = bin_str.replace('.', "")
 
@@ -254,17 +269,27 @@ def pckg_float_for_fpga(
     int_width: int, 
     flag: int=None
 ):
-
-    ubin_num = float_to_ubin(num)
+    
+    ubin_num = float_to_ubin(num, total_width, int_width)
     twocomp_num = twos_complement(ubin_num)
     #fixed_rep = fit_to_width(twocomp_num, int_width, total_width-int_width, num)
     
     if flag is not None: 
+<<<<<<< Updated upstream
         addflag = attach_flag(twocomp_num, flag)
         print("With flag: ", addflag)
         twocomp_num = addflag
         #fixed_rep = addflag
         
+=======
+        #addflag = attach_flag(fixed_rep, flag)
+        addflag = attach_flag(twocomp_num, flag) 
+        print("With flag: ", addflag)
+        twocomp_num = addflag
+        
+    #final_int = bin_to_int(fixed_rep)
+    print(twocomp_num) 
+>>>>>>> Stashed changes
     final_int = bin_to_int(twocomp_num)
 
     return final_int
